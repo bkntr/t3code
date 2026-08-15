@@ -778,6 +778,10 @@ export const DESKTOP_FILE_EXCLUSIONS = [
   // so the SDK's optional platform packages (each a ~200MB bundled executable)
   // are dead weight. The trailing dash keeps the SDK's own JS package.
   "!**/node_modules/@anthropic-ai/claude-agent-sdk-*/**/*",
+  // Windows arm64 builds msgpackr-extract locally. Keep its runtime addon while
+  // excluding MSBuild intermediates that electron-builder would smart-unpack.
+  "!**/node_modules/msgpackr-extract/build/!(Release){,/**/*}",
+  "!**/node_modules/msgpackr-extract/build/Release/!(extract.node){,/**/*}",
   // Windows stages the server sidecar below prod-resources so electron-builder
   // can copy it using project-relative extraResources matchers. Keep those
   // staging inputs out of app.asar; they are emitted once at resources/.

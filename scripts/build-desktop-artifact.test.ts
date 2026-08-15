@@ -389,10 +389,12 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
     );
   });
 
-  it("limits Electron locales and excludes the unused Claude SDK executable", () => {
+  it("limits Electron locales and excludes unused desktop payload files", () => {
     assert.deepStrictEqual(DESKTOP_ELECTRON_LANGUAGES, ["en-US"]);
     assert.deepStrictEqual(DESKTOP_FILE_EXCLUSIONS, [
       "!**/node_modules/@anthropic-ai/claude-agent-sdk-*/**/*",
+      "!**/node_modules/msgpackr-extract/build/!(Release){,/**/*}",
+      "!**/node_modules/msgpackr-extract/build/Release/!(extract.node){,/**/*}",
       "!apps/desktop/prod-resources/windows-server",
       "!apps/desktop/prod-resources/windows-server/**/*",
     ]);
