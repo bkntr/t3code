@@ -802,12 +802,14 @@ export const WINDOWS_SERVER_ASAR_RESOURCE = "server.asar";
 export const WINDOWS_SERVER_ASAR_UNPACK_GLOB =
   "{**/*.node,**/*.dll,**/*.exe,**/*.so,**/*.so.*,**/*.dylib}";
 // Mirrors DESKTOP_FILE_EXCLUSIONS for the hand-packed sidecar: the Claude SDK
-// platform packages are dead weight (see above), and node_modules/.bin shims
-// are never spawned at runtime (and are symlinks on POSIX build hosts, which
-// the asar extraction path deliberately does not support).
+// platform packages and native compiler intermediates are dead weight (see
+// above), and node_modules/.bin shims are never spawned at runtime (and are
+// symlinks on POSIX build hosts, which the asar extraction path does not support).
 export const WINDOWS_SERVER_ASAR_IGNORE_GLOBS = [
   "**/node_modules/@anthropic-ai/claude-agent-sdk-*",
   "**/node_modules/@anthropic-ai/claude-agent-sdk-*/**",
+  "**/node_modules/msgpackr-extract/build/!(Release){,/**/*}",
+  "**/node_modules/msgpackr-extract/build/Release/!(extract.node){,/**/*}",
   "**/node_modules/.bin",
   "**/node_modules/.bin/**",
 ] as const;

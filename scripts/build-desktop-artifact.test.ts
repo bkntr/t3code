@@ -453,8 +453,8 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
       ]);
       assert.deepStrictEqual(win.nsis, { differentialPackage: true });
       // Native binaries and helper executables cannot load from inside an
-      // asar; everything else stays packed. The Claude SDK platform packages
-      // and .bin shims never ship.
+      // asar; everything else stays packed. The Claude SDK platform packages,
+      // native compiler intermediates, and .bin shims never ship.
       assert.equal(
         WINDOWS_SERVER_ASAR_UNPACK_GLOB,
         "{**/*.node,**/*.dll,**/*.exe,**/*.so,**/*.so.*,**/*.dylib}",
@@ -462,6 +462,8 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
       assert.deepStrictEqual(WINDOWS_SERVER_ASAR_IGNORE_GLOBS, [
         "**/node_modules/@anthropic-ai/claude-agent-sdk-*",
         "**/node_modules/@anthropic-ai/claude-agent-sdk-*/**",
+        "**/node_modules/msgpackr-extract/build/!(Release){,/**/*}",
+        "**/node_modules/msgpackr-extract/build/Release/!(extract.node){,/**/*}",
         "**/node_modules/.bin",
         "**/node_modules/.bin/**",
       ]);
