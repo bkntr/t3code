@@ -77,6 +77,12 @@ const testHttpClient = HttpClient.make((request) =>
 
 const hangingHttpClient = HttpClient.make(() => Effect.never);
 
+const delayedHttpClient = HttpClient.make((request) =>
+  Effect.sleep(Duration.seconds(2)).pipe(
+    Effect.as(HttpClientResponse.fromWeb(request, new Response("", { status: 200 }))),
+  ),
+);
+
 const testNetService = NetService.NetService.of({
   canListenOnHost: () => Effect.succeed(true),
   isPortAvailableOnLoopback: () => Effect.succeed(true),
@@ -238,6 +244,33 @@ describe("ssh tunnel scripts", () => {
   it("allows the remote port picker to run without a state file path", () => {
     assert.include(REMOTE_PICK_PORT_SCRIPT, 'const filePath = process.argv[2] ?? "";');
   });
+
+  it("allows bounded time for cold remote installs without relaxing reuse probes", () => {
+    const script = buildRemoteLaunchScript();
+
+    assert.include(script, 'node - "$REMOTE_PORT" "$1" "1000"');
+    assert.include(script, 'if ! wait_ready "45000"; then');
+    assert.include(script, 'if wait_ready "2000"; then');
+  });
+
+  it.effect("allows forwarded readiness responses to take more than one second", () =>
+    Effect.gen(function* () {
+      const fiber = yield* Effect.forkChild(
+        waitForHttpReady({
+          baseUrl: "http://127.0.0.1:41773/",
+          timeoutMs: 10_000,
+        }),
+      );
+      yield* Effect.yieldNow;
+      yield* TestClock.adjust(Duration.seconds(2));
+
+      yield* Fiber.join(fiber);
+    }).pipe(
+      Effect.provide(
+        Layer.merge(TestClock.layer(), Layer.succeed(HttpClient.HttpClient, delayedHttpClient)),
+      ),
+    ),
+  );
 
   it.effect("bounds each HTTP readiness probe so retries cannot hang on one request", () =>
     Effect.gen(function* () {
